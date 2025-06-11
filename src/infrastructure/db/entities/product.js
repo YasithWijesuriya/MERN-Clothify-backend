@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const productSchema = new mongoose.Schema({
+    //child referance
     categoryID:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'category',
@@ -18,9 +19,14 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    // parent referance
+    reviews: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "Review",
+    default: [],
+  },
 });
 
-const product =mongoose.model('product',
-productSchema);
+const product =mongoose.model('product',productSchema);
 
 export default product;
