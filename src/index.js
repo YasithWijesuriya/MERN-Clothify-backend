@@ -1,10 +1,10 @@
-import {connectDB} from './src/infrastructure/db/index.js';
+import {connectDB} from './infrastructure/db/index.js';
 import express from 'express';
-import productRouter from './src/api/product.js';
-import categoryRouter from './src/api/categories.js';
-import reviewRouter from './src/api/review.js';
+import productRouter from './api/product.js';
+import categoryRouter from './api/categories.js';
+import reviewRouter from './api/review.js';
 import dotenv from 'dotenv';
-import globalErrorHandlingMiddleware from "./src/api/middleware/global-error-handling-middleware.js";
+import globalErrorHandlingMiddleware from "./api/middleware/global-error-handling-middleware.js";
 
 
 dotenv.config();
