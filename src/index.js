@@ -5,13 +5,17 @@ import categoryRouter from './api/categories.js';
 import reviewRouter from './api/review.js';
 import dotenv from 'dotenv';
 import globalErrorHandlingMiddleware from "./api/middleware/global-error-handling-middleware.js";
+import cors from 'cors';
 
 
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
+
 app.use(express.json());
+
+app.use(cors({ origin: "http://localhost:5173" }));
 
 app.use("/api/products",productRouter);
 app.use("/api/categories",categoryRouter);
