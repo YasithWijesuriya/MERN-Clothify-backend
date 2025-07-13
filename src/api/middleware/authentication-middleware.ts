@@ -1,6 +1,7 @@
 import UnauthorizedError from "../../domain/errors/unauthorized-error.js";
+import { Request, Response, NextFunction } from "express";
 
-const isAuthenticated = (req, res, next) => {
+const isAuthenticated = (req:Request , res:Response ,next:NextFunction) => {
   const isUserLoggedIn = false;
   if (!isUserLoggedIn) {
     throw new UnauthorizedError("Unauthorized");

@@ -1,8 +1,10 @@
-import category from '../infrastructure/db/entities/categories.js';
-import ValidationError from "../domain/errors/validation-error.js";
-import NotFoundError from "../domain/errors/not-found-error.js";
+import category from '../infrastructure/db/entities/Categories';
+import ValidationError from "../domain/errors/validation-error";
+import NotFoundError from "../domain/errors/not-found-error";
+import { CreateCategoryDTO } from '../domain/errors/DTO/category';
+import { Request, Response, NextFunction } from "express";
 
-const getAllCategories = async (req, res, next) => {
+const getAllCategories = async (req:Request , res:Response ,next:NextFunction) => {
     try {
         const categories = await category.find();
         res.status(200).json(categories);
@@ -11,20 +13,20 @@ const getAllCategories = async (req, res, next) => {
     }
 };
 
-const createCategory = async (req, res, next) => {
+const createCategory = async (req:Request , res:Response ,next:NextFunction) => {
+    const result= CreateCategoryDTO.safeParse(req.body);
+    if (!result.success) {
+        throw new ValidationError(result.error.message);
+    }
     try {
-        const newCategory = req.body;
-        if (!newCategory.name) {
-            throw new ValidationError("Category name is required");
-        }
-        const createdCategory = await category.create(newCategory);
-        res.status(201).json(createdCategory);
+        const newCategory = await category.create(result.data);
+        res.status(201).json(newCategory);
     } catch (error) {
         next(error);
     }
 };
 
-const getCategoryById = async (req, res, next) => {
+const getCategoryById = async (req:Request , res:Response ,next:NextFunction) => {
     try {
         const foundCategory = await category.findById(req.params.id);
         if (!foundCategory) {
@@ -36,7 +38,7 @@ const getCategoryById = async (req, res, next) => {
     }
 };
 
-const updateCategory = async (req, res, next) => {
+const updateCategory = async (req:Request , res:Response ,next:NextFunction) => {
     try {
         const updatedCategory = await category.findByIdAndUpdate(
             req.params.id,
@@ -52,7 +54,7 @@ const updateCategory = async (req, res, next) => {
     }
 };
 
-const deleteCategory = async (req, res, next) => {
+const deleteCategory = async (req:Request , res:Response ,next:NextFunction) => {
     try {
         const deletedCategory = await category.findByIdAndDelete(req.params.id);
         if (!deletedCategory) {

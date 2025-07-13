@@ -1,20 +1,19 @@
-import Review from "../infrastructure/db/entities/review.js";
-import product from "../infrastructure/db/entities/product.js";
-import ValidationError from "../domain/errors/validation-error.js";
-import NotFoundError from "../domain/errors/not-found-error.js";
+import Review from "../infrastructure/db/entities/Review";
+import product from "../infrastructure/db/entities/Product";
+import ValidationError from "../domain/errors/validation-error";
+import NotFoundError from "../domain/errors/not-found-error";
+import { Request, Response, NextFunction } from "express";
+import { CreateReviewDTO } from "../domain/errors/DTO/review";
 
-const createReview = async (req,res,next)=>{
+const createReview = async (req:Request , res:Response ,next:NextFunction)=>{
     try{
-        const newReview = req.body;
-         if (!newReview.review) {
-            throw new ValidationError("Review text is required");
+        const parsed = CreateReviewDTO.safeParse(req.body);
+        if (!parsed.success) {
+          // You can throw a ValidationError or return a response with the error details
+          throw new ValidationError(parsed.error.message);
         }
-        if (!newReview.rating) {
-            throw new ValidationError("Rating is required");
-        }
-        if (!newReview.productId) {
-            throw new ValidationError("Product ID is required");
-        }
+        const newReview = parsed.data;
+
         const Reviews = await Review.create({
             review: req.body.review,
             rating: req.body.rating,
@@ -43,7 +42,7 @@ const createReview = async (req,res,next)=>{
         next(error);
     }
 }
-const getReview = async (req,res,next)=>{
+const getReview = async (req:Request , res:Response ,next:NextFunction)=>{
     try{
         const productId = req.params.id;
         const products = await product.findById(productId).populate('reviews');
@@ -58,7 +57,7 @@ const getReview = async (req,res,next)=>{
     }
 }
 
-const deleteReview = async(req,res,next)=>{
+const deleteReview = async(req:Request , res:Response ,next:NextFunction)=>{
     try{
         const reviewId = req.params.id;
         const review = await Review.findByIdAndDelete(reviewId);

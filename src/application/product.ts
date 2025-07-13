@@ -1,9 +1,11 @@
-import product from '../infrastructure/db/entities/product.js';
-import ValidationError from "../domain/errors/validation-error.js";
-import NotFoundError from "../domain/errors/not-found-error.js";
+import product from '../infrastructure/db/entities/Product';
+import ValidationError from "../domain/errors/validation-error";
+import NotFoundError from "../domain/errors/not-found-error";
+import { Request, Response, NextFunction } from "express";
+import { CreateProductDTO } from '../domain/errors/DTO/product';
 
 
-const getAllProduct = async (req, res, next)=>{
+const getAllProduct = async (req:Request , res:Response ,next:NextFunction)=>{
 try{
     const categoryID = req.query.categoryID; // query parameter එකෙන් categoryId එක ගන්නවා
     if (categoryID) {
@@ -22,19 +24,15 @@ try{
 }
 };
 
-const createProduct = async(req, res, next) => {
+const createProduct = async(req:Request , res:Response ,next:NextFunction) => {
     
     try {
-        const newProduct = req.body;
-         if (!newProduct.name) {
-            throw new ValidationError("Product name is required");
-        }
-        if (!newProduct.categoryID) {
-            throw new ValidationError("Category ID is required");
-        }
-        
-        const products = await product.create(newProduct);
-        res.status(201).json(products);
+       const result =  CreateProductDTO.safeParse(req.body);
+       if (!result.success) {
+        throw new ValidationError(result.error.message);
+       }
+       await product.create(result.data);
+       res.status(201).send();
     } catch (error) {
         next(error);
     }
@@ -43,7 +41,7 @@ const createProduct = async(req, res, next) => {
     // .create() function එක asynchronous function එකක් නිසා await use කරලා result එක products variable එකට assign කරලා තියෙයි.
 };
 
-const getProductById = async (req, res, next) => {
+const getProductById = async (req:Request , res:Response ,next:NextFunction) => {
   try {
     const products = await product.findById(req.params.id).populate("reviews");
 
@@ -59,7 +57,7 @@ const getProductById = async (req, res, next) => {
 };
 
 
-const updateProduct = async (req, res, next)=>{
+const updateProduct = async (req:Request , res:Response ,next:NextFunction)=>{
    
     try{
          const products = await product.findByIdAndUpdate(
@@ -79,7 +77,7 @@ const updateProduct = async (req, res, next)=>{
 
 }
 
-const deleteProduct = async (req, res, next)=>{
+const deleteProduct = async (req:Request , res:Response ,next:NextFunction)=>{
     try{
         const products = await product.findByIdAndDelete(req.params.id); 
     if(!products){
