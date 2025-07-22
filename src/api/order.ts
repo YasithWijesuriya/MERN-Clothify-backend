@@ -1,8 +1,9 @@
 import express from "express";
 import { createOrder, getOrder } from "../application/order";
+import isAuthenticated from "../api/middleware/authentication-middleware";
 
 
 export const orderRouter = express.Router();
 
-orderRouter.route("/").post(createOrder);
+orderRouter.route("/").post(isAuthenticated, createOrder);
 orderRouter.route("/:id").get(getOrder);

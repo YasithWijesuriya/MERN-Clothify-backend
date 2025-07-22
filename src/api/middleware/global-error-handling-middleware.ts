@@ -4,6 +4,8 @@ import UnauthorizedError from "../../domain/errors/unauthorized-error";
 import { Request, Response, NextFunction } from "express";
 
 const globalErrorHandlingMiddleware = (err:Error, req:Request, res :Response, next:NextFunction) => {
+  console.error("Error:", err);
+
   if (err instanceof ValidationError) {
     res.status(400).json({ message: err.message });
   } else if (err instanceof NotFoundError) {
@@ -14,5 +16,4 @@ const globalErrorHandlingMiddleware = (err:Error, req:Request, res :Response, ne
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 export default globalErrorHandlingMiddleware;
