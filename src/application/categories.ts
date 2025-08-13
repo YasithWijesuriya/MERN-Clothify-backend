@@ -26,6 +26,7 @@ const createCategory = async (req:Request , res:Response ,next:NextFunction) => 
     }
 };
 
+
 const getCategoryById = async (req:Request , res:Response ,next:NextFunction) => {
     try {
         const foundCategory = await category.findById(req.params.id);

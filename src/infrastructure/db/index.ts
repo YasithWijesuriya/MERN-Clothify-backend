@@ -1,4 +1,11 @@
 import mongoose from 'mongoose';
+// Import all models to ensure they are registered
+import '../db/entities/Product';
+import '../db/entities/Categories';
+import '../db/entities/Review';
+import '../db/entities/Orders';
+import '../db/entities/Color';
+
 const connectDB = async () => {
     try{
         const MONGODB_URL = process.env.MONGODB_URL;

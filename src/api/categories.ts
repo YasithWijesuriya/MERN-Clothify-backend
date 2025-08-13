@@ -9,4 +9,5 @@ categoryRouter.route('/').get(getAllCategories).post(createCategory);
 
 categoryRouter.route('/:id').get(getCategoryById).put(updateCategory).delete(deleteCategory);
 
+
 export default categoryRouter;

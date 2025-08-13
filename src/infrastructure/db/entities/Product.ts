@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
 const productSchema = new mongoose.Schema({
-    //child referance
-    categoryID:{
+    //child reference
+    categoryId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'category',
         required:true,
@@ -19,12 +19,30 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    // parent referance
+    stock: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
+    // Optional color reference
+    colorId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'color',
+        required: false, 
+    },
+    // parent reference
     reviews: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: "Review",
     default: [],
   },
+  categorySlug: {
+    type: String,
+    required: true,
+    lowercase: true, // auto lowercase for filtering
+    trim: true
+    }
+
 });
 
 const product =mongoose.model('product',productSchema);

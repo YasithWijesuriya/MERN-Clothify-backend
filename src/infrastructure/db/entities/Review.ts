@@ -1,15 +1,20 @@
 import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose. Schema({
+    user:{
+        type:String,
+        required:true,
+    },
     review: {
-    type: String,
-    required: true,
+        type: String,
+        required: true,
     },
     rating: {
         type: Number,
         required: true,
     },
 });
+
 
 const Review = mongoose.model("Review", reviewSchema);
 
