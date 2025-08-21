@@ -6,7 +6,8 @@ const CreateProductDTO = z.object({
   image: z.string().min(1),
   stock: z.number(),
   price: z.number().nonnegative(),
-  colorId: z.string().optional(), // Optional color reference
+  description: z.string().min(1),
+  colorId: z.string().optional(), 
 });
 
 export { CreateProductDTO };

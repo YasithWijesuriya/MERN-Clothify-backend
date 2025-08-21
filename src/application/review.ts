@@ -1,9 +1,12 @@
+import mongoose from "mongoose";
 import Review from "../infrastructure/db/entities/Review";
 import product from "../infrastructure/db/entities/Product";
 import ValidationError from "../domain/errors/validation-error";
 import NotFoundError from "../domain/errors/not-found-error";
+import ForbiddenError from "../domain/errors/forbidden-error";
 import { Request, Response, NextFunction } from "express";
 import { CreateReviewDTO } from "../domain/errors/DTO/review";
+import { getAuth, clerkClient } from "@clerk/express";
 
 const getAllReviews = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -15,28 +18,44 @@ const getAllReviews = async (req: Request, res: Response, next: NextFunction) =>
 }
 
 
-const createReview = async (req:Request , res:Response ,next:NextFunction)=>{
-    try{
-        const parsed = CreateReviewDTO.safeParse(req.body);
-        if (!parsed.success) {
-          // You can throw a ValidationError or return a response with the error details
-          throw new ValidationError(parsed.error.message);
-        }
-        const newReview = parsed.data;
+const createReview = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const auth = getAuth(req);
+    if (!auth?.userId) //!Clerk generate කරන unique ID
+         throw new ForbiddenError("You do not have permission to create a review");
 
-        const Reviews = await Review.create({
-            user:req.body.user,
-            review: req.body.review,
-            rating: req.body.rating,
+
+    const parsed = CreateReviewDTO.safeParse(req.body); //!createReviewDTO -> Zod schema එක (input validation)
+    if (!parsed.success) throw new ValidationError(parsed.error.message);
+    const { productId, review, rating } = parsed.data;
+
+    // 1) product validate
+    const prod = await product.findById(productId);
+    if (!prod) throw new NotFoundError("Product not found");
+
+    // 2) Clerk display name
+    const u = await clerkClient.users.getUser(auth.userId); 
+    //!clerkClient.users.getUser() → Clerk DB එකෙන් real user object එක ගන්නවා.
+    const displayName =
+      u.fullName || u.username || u.primaryEmailAddress?.emailAddress || "User"; // "User is default value"
+
+    // 3) review create
+    const reviewDoc = await Review.create({
+      userId: auth.userId,
+      user: displayName,          // <-- auto name from Clerk
+      review,
+      rating,
+      productId,
     });
 
-        const products = await product.findById(newReview.productId);
-        if (!products) {
-            throw new NotFoundError("Product not found");
-        }
-        products.reviews.push(Reviews._id);
-            await products.save();
-            res.status(201).send();
+    // 4) link to product
+    prod.reviews.push(reviewDoc._id);
+    await prod.save();
+
+    return res.status(201).json(reviewDoc); //! frontend එක refresh කරන්න ලේසි වෙනවා
+ 
+
+ 
       /*      
       1. newReview කියල variable එකක් හදාගෙන එයට අප postmon මගින් request කර එහි json body එක තුල තිබෙන 
        data ටික එයට assign කරගන්නවා. 
@@ -52,7 +71,7 @@ const createReview = async (req:Request , res:Response ,next:NextFunction)=>{
     }catch(error){
         next(error);
     }
-}
+};
 const getReview = async (req:Request , res:Response ,next:NextFunction)=>{
     try{
         const productId = req.params.id;
@@ -69,19 +88,34 @@ const getReview = async (req:Request , res:Response ,next:NextFunction)=>{
 }
 
 
-const deleteReview = async(req:Request , res:Response ,next:NextFunction)=>{
-    try{
-        const reviewId = req.params.id;
-        const review = await Review.findByIdAndDelete(reviewId);
-         if (!review) {
-            throw new NotFoundError("Review not found");
-        }
-        res.status(200).send(review);
+const deleteReview = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const auth = getAuth(req);
+    if (!auth?.userId)
+         throw new ForbiddenError("You do not have permission to delete a review");
 
+    const review = await Review.findById(req.params.id); //!url එකේ reviewID එක පාස් වෙනවා ඒක අරගෙන ඊට අදාල object එක review එකට assign කරගන්නවා.
+    if (!review) 
+        throw new NotFoundError("Review not found");
 
-    }catch(error){
-        next(error);
+    // owner only
+    if (review.userId !== auth.userId) {
+      throw new ForbiddenError("You do not have permission to delete this review");
     }
-}
 
-export {createReview,deleteReview,getReview,getAllReviews};
+    // remove from product.reviews
+    if (review.productId) {
+      await product.findByIdAndUpdate( //!මේ review එකට අදාල product එක DB එකෙන් id එකෙන් ගන්නවා.
+        review.productId,
+        { $pull: { reviews: new mongoose.Types.ObjectId(review._id) } }, //!$pull operator එක use කරලා reviews array එකෙන් remove කරනවා.ඒ කියන්නෙ product එකෙනුත් අයින් වෙලා යනවා.
+        { new: true } //!update වෙලා තියෙන latest product document එක return කරන්න කියන option එක.
+      );
+    }
+
+    await review.deleteOne(); //!  Review document එකම DB එකෙන් delete කරනවා.
+    return res.json({ message: "Review deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+export { createReview, deleteReview, getReview, getAllReviews };

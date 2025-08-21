@@ -14,7 +14,7 @@ productRouter
 .route('/:id')
 .get(getProductById)
 .put(updateProduct)
-.delete(deleteProduct);
+.delete(isAuthenticated, isAdmin, deleteProduct);
 
 productRouter
 .route('/images')

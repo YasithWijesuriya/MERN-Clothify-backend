@@ -1,6 +1,4 @@
-import mongoose from 'mongoose';
 import product from '../infrastructure/db/entities/Product';
-import ValidationError from "../domain/errors/validation-error";
 import NotFoundError from "../domain/errors/not-found-error";
 import { Request, Response, NextFunction } from "express";
 import { CreateProductDTO } from '../domain/errors/DTO/product';
@@ -8,58 +6,55 @@ import { randomUUID } from 'crypto';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import category from '../infrastructure/db/entities/Categories'; 
+import color from '../infrastructure/db/entities/Color';
 import S3 from '../infrastructure/s3';
 
 const getAllProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const categoryId = req.query.categoryId;
-        let query = {};
+        const { categorySlug, colorSlug} = req.query;
+                let query: any = {};
 
-        if (categoryId && typeof categoryId === 'string') {
-            query = { categoryId: new mongoose.Types.ObjectId(categoryId) };
-        }
+                if (typeof categorySlug === 'string') query.categorySlug = categorySlug.toLowerCase();
+                if (typeof colorSlug === 'string') query.colorSlug = colorSlug.toLowerCase(); // match slug in DB
 
-        const products = await product.find(query)
-            .populate("reviews")
-            .populate("colorId")
-            .populate("categoryId");
+                
 
-        res.status(200).json(products);
+                const products = await product.find(query)
+                .populate("reviews")
+                .populate("colorId")
+                .populate("categoryId");
+
+                res.status(200).json(products);
     } catch (error) {
         next(error);
     }
 };
 
 const createProduct = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const result = CreateProductDTO.safeParse(req.body);
-        if (!result.success) {
-            throw new ValidationError(result.error.message);
-        }
+     try {
+    
+    const parseData = CreateProductDTO.parse(req.body);
+    const { categoryId, colorId } = parseData;
 
-           // Find category document to get name & slug
-    const Category = await category.findById(result.data.categoryId);
-    if (!Category) {
-      throw new NotFoundError("Category not found");
-    }
+    const categoryDoc = await category.findById(categoryId);
+    if (!categoryDoc) 
+        throw new NotFoundError('Category not found');
 
-    // Generate slug from category name (or use category.slug if exists)
-    const categorySlug = Category.categorySlug
-      ? Category.categorySlug
-      : Category.name.toLowerCase().replace(/\s+/g, '-');
+    const colorDoc = colorId ? await color.findById(colorId) : null;
 
-    // Create product with auto slug
-    await product.create({
-      ...result.data,
-      categorySlug,
-      image: req.body.image
-    });
+    const payload = {
+      ...parseData,
+      categorySlug: (categoryDoc.categorySlug || categoryDoc.name).toString().toLowerCase(),
+      colorSlug: colorDoc ? (colorDoc.colorSlug || colorDoc.name).toString().toLowerCase() : '',
+    };
 
-        res.status(201).json({ message: "Product created successfully" });
-    } catch (error) {
-        next(error);
-    }
+    const newProduct = await product.create(payload);
+    res.status(201).json(newProduct);
+  } catch (err) {
+    next(err);
+  }
 };
+
 
 const getProductById = async (req: Request, res: Response, next: NextFunction) => {
     try {

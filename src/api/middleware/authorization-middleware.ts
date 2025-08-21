@@ -6,7 +6,6 @@ import { getAuth } from "@clerk/express";
 const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   const auth = getAuth(req);
   const userRole = auth.sessionClaims?.metadata?.role;
-
   if(!userRole){
     return res.status(403).json({ message: ForbiddenError });
   }

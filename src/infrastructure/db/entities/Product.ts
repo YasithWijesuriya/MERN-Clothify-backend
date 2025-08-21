@@ -24,6 +24,10 @@ const productSchema = new mongoose.Schema({
         required: true,
         default: 0,
     },
+    description: {
+        type: String,
+        required: true,
+    },
     // Optional color reference
     colorId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -41,6 +45,12 @@ const productSchema = new mongoose.Schema({
     required: true,
     lowercase: true, // auto lowercase for filtering
     trim: true
+    },
+    colorSlug: {
+        type: String,
+        required: false,
+        lowercase: true,
+        trim: true
     }
 
 });

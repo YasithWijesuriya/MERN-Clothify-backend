@@ -15,21 +15,6 @@ const getAllColors = async (req: Request, res: Response, next: NextFunction) => 
 };
 
 
-const createColor = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const result = CreateColorDTO.safeParse(req.body);
-        if (!result.success) {
-            throw new ValidationError(result.error.message);
-        }
-        
-        const newColor = await color.create(result.data);
-        res.status(201).json(newColor);
-    } catch (error) {
-        next(error);
-    }
-};
-
-
 const getColorById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const colorItem = await color.findById(req.params.id);
@@ -43,6 +28,20 @@ const getColorById = async (req: Request, res: Response, next: NextFunction) => 
         next(error);
     }
 };
+
+const createColor = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const result = CreateColorDTO.safeParse(req.body);
+        if (!result.success) {
+            throw new ValidationError(result.error.message);
+        }
+
+        const newColor = await color.create(result.data);
+        res.status(201).json(newColor);
+    } catch (error) {
+        next(error);
+    }
+}
 
 
 const updateColor = async (req: Request, res: Response, next: NextFunction) => {
