@@ -11,15 +11,19 @@ import S3 from '../infrastructure/s3';
 
 const getAllProduct = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { categorySlug, colorSlug} = req.query;
-                let query: any = {};
+        const { categorySlug, colorSlug, sortByPrice } = req.query;
+        let query: any = {};
 
                 if (typeof categorySlug === 'string') query.categorySlug = categorySlug.toLowerCase();
                 if (typeof colorSlug === 'string') query.colorSlug = colorSlug.toLowerCase(); // match slug in DB
 
-                
+                let sortOption :any ={};
+                if(sortByPrice === 'asc')sortOption = { price: 1 };
+                if(sortByPrice === 'desc')sortOption = { price: -1 };
+      
 
                 const products = await product.find(query)
+                .sort(sortOption)
                 .populate("reviews")
                 .populate("colorId")
                 .populate("categoryId");
@@ -54,7 +58,6 @@ const createProduct = async (req: Request, res: Response, next: NextFunction) =>
     next(err);
   }
 };
-
 
 const getProductById = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -132,7 +135,6 @@ const uploadProductImage = async (req: Request, res: Response, next: NextFunctio
         next(error);
     }
 };
-
 
 
 export {

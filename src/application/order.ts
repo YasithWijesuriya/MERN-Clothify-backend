@@ -7,22 +7,27 @@ import { getAuth } from "@clerk/express";
 
 const createOrder = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = req.body;
-    console.log(data); 
-    const { userId } = getAuth(req);
-     
-    
+    const { userId, items, address, paymentMethod, paymentDetails, totalPrice } = req.body;
 
-    const address = await Address.create(data.shippingAddress);
-    await Order.create({
-      addressId: address._id,
-      items: data.orderItems,
-      userId: userId,
+    // create Address doc
+    const addressDoc = await Address.create(address);
+    //addressDoc කියන්නේ DB එකෙන් return වෙන saved document (උදා: _id තියෙන object).
+
+    // create order
+    const deliveryEta = new Date(Date.now() + 48 * 60 * 60 * 1000); // දැන් සිට 48 පැය (48 * 60 * 60 * 1000 ms) ගණනය කරනවා
+    const order = await Order.create({
+      userId,
+      items,
+      addressId: addressDoc._id,
+      totalPrice,
+      paymentMethod,
+      paymentDetails,
+      paymentStatus: paymentMethod === 'CREDIT_CARD' ? 'PAID' : 'PENDING',
+      deliveryEta,
     });
 
-    res.status(201).send();
+    res.status(201).json({ orderId: order._id, eta: deliveryEta.toISOString() });
   } catch (error) {
-    console.error("Order create error:", error);
     next(error);
   }
 };
@@ -49,3 +54,5 @@ const getOrder = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 export {createOrder, getOrder};
+
+
