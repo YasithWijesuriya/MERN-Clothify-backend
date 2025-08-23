@@ -15,6 +15,26 @@ const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
+const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const auth = getAuth(req);
+    if (!auth || !auth.userId) {
+      return res.status(401).json({ 
+        status: 'error',
+        message: 'Authentication required'
+      });
+    }
+    // Add user info to request object
+    req.auth = auth;
+    next();
+  } catch (error) {
+    return res.status(401).json({ 
+      status: 'error',
+      message: 'Invalid authentication token'
+    });
+  }
+};
+
 
 
 export default isAdmin;

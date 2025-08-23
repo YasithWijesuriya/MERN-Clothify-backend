@@ -12,8 +12,8 @@ const ItemSchema = new mongoose.Schema({
 const OrderSchema = new mongoose.Schema({
   userId: { 
     type: String, 
-    required: false 
-  }, // if you have auth fill it
+    required: true
+  }, 
   items: { 
     type: [ItemSchema], 
     required: true 

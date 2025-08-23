@@ -4,8 +4,9 @@ import express from 'express';
 import productRouter from './api/product';
 import categoryRouter from './api/categories';
 import reviewRouter from './api/review';
-import { orderRouter } from './api/order';
+import orderRouter  from './api/order';
 import colorRouter from './api/color';
+import galleryRouter from "./api/gallery";
 import globalErrorHandlingMiddleware from "./api/middleware/global-error-handling-middleware";
 import cors from 'cors';
 import { clerkMiddleware } from '@clerk/express';
@@ -33,6 +34,7 @@ app.use("/api/categories",categoryRouter);
 app.use("/api/reviews",reviewRouter);
 app.use("/api/orders",orderRouter);
 app.use("/api/colors",colorRouter);
+app.use("/api/gallery", galleryRouter);
 
 app.use(globalErrorHandlingMiddleware);
 

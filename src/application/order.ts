@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import Address from "../infrastructure/db/entities/Address";
 import Order from "../infrastructure/db/entities/Orders";
-import NotFoundError from "../domain/errors/not-found-error";
-import UnauthorizedError from "../domain/errors/unauthorized-error";
 import { getAuth } from "@clerk/express";
 
 const createOrder = async (req: Request, res: Response, next: NextFunction) => {
@@ -31,28 +29,103 @@ const createOrder = async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 };
-
-const getOrder = async (req: Request, res: Response, next: NextFunction) => {
+const getMyOrders = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = getAuth(req);
-    const orderId = req.params.id;
-
-    const order = await Order.findById(orderId);
-    if (!order) {
-      throw new NotFoundError("Order not found");
+    const auth = getAuth(req);
+    if (!auth || !auth.userId) {
+      return res.status(401).json({ 
+        status: 'error',
+        message: 'Authentication required' 
+      });
     }
 
-    if (order.userId !== userId) {
-      throw new UnauthorizedError("Unauthorized");
-    }
+    const orders = await Order.find({ userId: auth.userId })
+      .populate('addressId')
+      .populate('items.productId') // Add this to get product details
+      .sort({ createdAt: -1 });
 
-    res.status(200).json(order);
+    res.status(200).json({
+      status: 'success',
+      data: orders
+    });
   } catch (error) {
-    console.error("Error in getAllProduct:", error);
+    next(error);
+  }
+};
+const getAllOrders = async (req: Request, res: Response, next: NextFunction) => {
+  try{
+    const orders = await Order.find()
+      .populate("addressId") 
+      .sort({ createdAt: -1 });
+    res.status(200).json(orders);
+  }catch(error){
     next(error);
   }
 };
 
-export {createOrder, getOrder};
+const getDailySales = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const daysRaw = req.query.days;
+    let daysStr: string;
 
+    if (Array.isArray(daysRaw)) {
+      daysStr = String(daysRaw[0]);
+    } else if (typeof daysRaw === "string") {
+      daysStr = daysRaw;
+    } else {
+      daysStr = "7"; // default
+    }
 
+    const days = Math.min(Math.max(parseInt(daysStr, 10), 1), 90);
+    const tz = "Asia/Colombo";
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const start = new Date(today);
+    start.setDate(today.getDate() - (days - 1));
+
+    const rows = await Order.aggregate([
+      { 
+        $match: { 
+          paymentStatus: "PAID", 
+          createdAt: { $gte: start } 
+        } 
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt",
+              timezone: tz,
+            },
+          },
+          total: { $sum: "$totalPrice" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          date: "$_id",
+          total: { $round: ["$total", 2] },
+        },
+      },
+      { $sort: { date: 1 } },
+    ]);
+
+    const map = new Map(rows.map((r) => [r.date, r.total]));
+    const fill = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      fill.push({ date: key, total: map.get(key) ?? 0 });
+    }
+
+    res.json(fill);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export {createOrder, getAllOrders, getMyOrders, getDailySales};   
