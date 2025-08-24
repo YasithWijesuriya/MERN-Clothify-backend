@@ -1,0 +1,1 @@
+{"version":3,"file":"category.js","sourceRoot":"","sources":["../../../../src/domain/errors/DTO/category.ts"],"names":[],"mappings":";;;AAAA,6BAAsB;AAEtB,MAAM,iBAAiB,GAAG,OAAC,CAAC,MAAM,CAAC;IACjC,IAAI,EAAE,OAAC,CAAC,MAAM,EAAE,CAAC,GAAG,CAAC,CAAC,EAAE,2BAA2B,CAAC;IACpD,YAAY,EAAE,OAAC,CAAC,MAAM,EAAE,CAAC,GAAG,CAAC,CAAC,EAAE,2BAA2B,CAAC;CAC7D,CAAC,CAAC;AAEK,8CAAiB"}

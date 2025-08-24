@@ -1,7 +1,7 @@
 import { createGalleryItem, getGalleryItems, deleteGalleryItem,getSignedGalleryImageUrl } from "../application/gallery";
 import express from "express";
-import isAuthenticated from "./middleware/authentication-middleware";
-import isAdmin from "./middleware/authorization-middleware";
+import { isAuthenticated } from '../api/middleware/authentication-middleware';
+import { isAdmin } from '../api/middleware/authorization-middleware';
 
 const galleryRouter = express.Router();
 

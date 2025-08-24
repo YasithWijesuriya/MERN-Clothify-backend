@@ -1,7 +1,7 @@
 import express from 'express';
-import isAuthenticated from './middleware/authentication-middleware';
 import { getAllProduct,createProduct,getProductById,updateProduct,deleteProduct, uploadProductImage} from '../application/product';
-import isAdmin from './middleware/authorization-middleware';
+import { isAuthenticated } from '../api/middleware/authentication-middleware';
+import { isAdmin } from '../api/middleware/authorization-middleware';
 
 const productRouter = express.Router();
 

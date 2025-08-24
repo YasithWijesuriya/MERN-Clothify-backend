@@ -43,7 +43,7 @@ const productSchema = new mongoose.Schema({
   categorySlug: {
     type: String,
     required: true,
-    lowercase: true, // auto lowercase for filtering
+    lowercase: true, 
     trim: true
     },
     colorSlug: {
@@ -55,6 +55,6 @@ const productSchema = new mongoose.Schema({
 
 });
 
-const product =mongoose.model('product',productSchema);
+const product =mongoose.model('Product',productSchema);
 
 export default product;

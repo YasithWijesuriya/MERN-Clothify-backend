@@ -8,7 +8,7 @@ const categorySchema = new mongoose.Schema({
     categorySlug: {
         type: String,
         required: true,
-        unique: true, // Ensure categorySlug is unique
+        unique: true, 
     },
 
 

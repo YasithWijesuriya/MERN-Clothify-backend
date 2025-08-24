@@ -1,40 +1,47 @@
-import ForbiddenError from "../../domain/errors/forbidden-error";
 import { Request, Response, NextFunction } from "express";
-import { getAuth } from "@clerk/express";
+import { getAuth, AuthObject } from "@clerk/express";
 
 
-const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-  const auth = getAuth(req);
-  const userRole = auth.sessionClaims?.metadata?.role;
-  if(!userRole){
-    return res.status(403).json({ message: ForbiddenError });
+// Custom ForbiddenError message
+class ForbiddenError extends Error {
+  constructor(message = "Forbidden") {
+    super(message);
+    this.name = "ForbiddenError";
   }
- console.log("User authenticated:", auth.userId);
- console.log("User role:",userRole);
+}
+
+export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
+  const auth = getAuth(req);
+  const metadata = auth.sessionClaims?.metadata as { role?: string };
+  const userRole = metadata?.role;
+
+  if (!userRole || userRole !== "admin") {
+    return res.status(403).json({ message: new ForbiddenError().message });
+  }
+
+  console.log("User authenticated:", auth.userId);
+  console.log("User role:", userRole);
 
   next();
 };
 
-const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   try {
     const auth = getAuth(req);
+
     if (!auth || !auth.userId) {
-      return res.status(401).json({ 
-        status: 'error',
-        message: 'Authentication required'
+      return res.status(401).json({
+        status: "error",
+        message: "Authentication required",
       });
     }
-    // Add user info to request object
-    req.auth = auth;
+
+    req.auth = auth; 
     next();
   } catch (error) {
-    return res.status(401).json({ 
-      status: 'error',
-      message: 'Invalid authentication token'
+    return res.status(401).json({
+      status: "error",
+      message: "Invalid authentication token",
     });
   }
 };
-
-
-
-export default isAdmin;

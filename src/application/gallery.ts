@@ -10,7 +10,7 @@ import S3 from "../infrastructure/s3";
 
 const createGalleryItem = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Validation
+    
     const parsed = CreateGalleryDTO.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({

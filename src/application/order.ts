@@ -41,7 +41,10 @@ const getMyOrders = async (req: Request, res: Response, next: NextFunction) => {
 
     const orders = await Order.find({ userId: auth.userId })
       .populate('addressId')
-      .populate('items.productId') // Add this to get product details
+      .populate({
+        path: 'items.productId',
+        model: 'Product'
+      })
       .sort({ createdAt: -1 });
 
     res.status(200).json({

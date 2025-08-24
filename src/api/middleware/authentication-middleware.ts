@@ -1,20 +1,18 @@
-import UnauthorizedError from "../../domain/errors/unauthorized-error";
 import { Request, Response, NextFunction } from "express";
-import { getAuth } from "@clerk/express";
+import { getAuth, AuthObject } from "@clerk/express";
 
+export const isAuthenticated = (req: Request, res: Response, next: NextFunction): void => {
+  try {
+    const auth = getAuth(req);
 
-const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  const auth = getAuth(req);
-  if (!auth || !auth.userId) {
-    return res.status(401).json({ message: UnauthorizedError });
+    if (!auth || !auth.userId) {
+      res.status(401).json({ status: "error", message: "Authentication required" });
+      return; // Stop execution
+    }
+
+    req.auth = auth;
+    next();
+  } catch {
+    res.status(401).json({ status: "error", message: "Invalid authentication token" });
   }
-  //how to use clerkClient and work with ser roles 
-  // refer this and  practice it
-  next();
-  // console.log(auth);
-  // console.log("User authenticated:", auth.userId);
 };
-
-
-
-export default isAuthenticated;
