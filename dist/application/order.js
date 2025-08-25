@@ -1,0 +1,135 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getDailySales = exports.getMyOrders = exports.getAllOrders = exports.createOrder = void 0;
+const Address_1 = __importDefault(require("../infrastructure/db/entities/Address"));
+const Orders_1 = __importDefault(require("../infrastructure/db/entities/Orders"));
+const express_1 = require("@clerk/express");
+const createOrder = async (req, res, next) => {
+    try {
+        const { userId, items, address, paymentMethod, paymentDetails, totalPrice } = req.body;
+        // create Address doc
+        const addressDoc = await Address_1.default.create(address);
+        //addressDoc කියන්නේ DB එකෙන් return වෙන saved document (උදා: _id තියෙන object).
+        // create order
+        const deliveryEta = new Date(Date.now() + 48 * 60 * 60 * 1000); // දැන් සිට 48 පැය (48 * 60 * 60 * 1000 ms) ගණනය කරනවා
+        const order = await Orders_1.default.create({
+            userId,
+            items,
+            addressId: addressDoc._id,
+            totalPrice,
+            paymentMethod,
+            paymentDetails,
+            paymentStatus: paymentMethod === 'CREDIT_CARD' ? 'PAID' : 'PENDING',
+            deliveryEta,
+        });
+        res.status(201).json({ orderId: order._id, eta: deliveryEta.toISOString() });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.createOrder = createOrder;
+const getMyOrders = async (req, res, next) => {
+    try {
+        const auth = (0, express_1.getAuth)(req);
+        if (!auth || !auth.userId) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Authentication required'
+            });
+        }
+        const orders = await Orders_1.default.find({ userId: auth.userId })
+            .populate('addressId')
+            .populate({
+            path: 'items.productId',
+            model: 'Product'
+        })
+            .sort({ createdAt: -1 });
+        res.status(200).json({
+            status: 'success',
+            data: orders
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getMyOrders = getMyOrders;
+const getAllOrders = async (req, res, next) => {
+    try {
+        const orders = await Orders_1.default.find()
+            .populate("addressId")
+            .sort({ createdAt: -1 });
+        res.status(200).json(orders);
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getAllOrders = getAllOrders;
+const getDailySales = async (req, res, next) => {
+    try {
+        const daysRaw = req.query.days;
+        let daysStr;
+        if (Array.isArray(daysRaw)) {
+            daysStr = String(daysRaw[0]);
+        }
+        else if (typeof daysRaw === "string") {
+            daysStr = daysRaw;
+        }
+        else {
+            daysStr = "7"; // default
+        }
+        const days = Math.min(Math.max(parseInt(daysStr, 10), 1), 90);
+        const tz = "Asia/Colombo";
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const start = new Date(today);
+        start.setDate(today.getDate() - (days - 1));
+        const rows = await Orders_1.default.aggregate([
+            {
+                $match: {
+                    paymentStatus: "PAID",
+                    createdAt: { $gte: start }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: {
+                            format: "%Y-%m-%d",
+                            date: "$createdAt",
+                            timezone: tz,
+                        },
+                    },
+                    total: { $sum: "$totalPrice" },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    date: "$_id",
+                    total: { $round: ["$total", 2] },
+                },
+            },
+            { $sort: { date: 1 } },
+        ]);
+        const map = new Map(rows.map((r) => [r.date, r.total]));
+        const fill = [];
+        for (let i = 0; i < days; i++) {
+            const d = new Date(start);
+            d.setDate(start.getDate() + i);
+            const key = d.toISOString().slice(0, 10);
+            fill.push({ date: key, total: map.get(key) ?? 0 });
+        }
+        res.json(fill);
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getDailySales = getDailySales;
+//# sourceMappingURL=order.js.map
