@@ -23,18 +23,23 @@ declare global {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CORS configuration
+const FRONTEND_URL = process.env.FRONTEND_URL; // e.g., https://your-frontend.vercel.app
+const FRONTEND_URL_PREVIEW_PATTERN = /\.vercel\.app$/; // optional: allow Vercel previews
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // Postman / server
-      // Localhost dev
+      if (!origin) return callback(null, true); // e.g., Postman, server-to-server
+
       if (origin.startsWith("http://localhost")) return callback(null, true);
-      // Production frontend
-      const allowedOrigins = [
-        "https://mern-clothify-frontend.vercel.app",
-      ];
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      if (FRONTEND_URL && origin === FRONTEND_URL) return callback(null, true);
+
+      // Optional: allow any *.vercel.app for previews
+      if (FRONTEND_URL_PREVIEW_PATTERN.test(new URL(origin).hostname)) {
+        return callback(null, true);
+      }
+
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
