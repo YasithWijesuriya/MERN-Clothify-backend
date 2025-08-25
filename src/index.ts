@@ -24,16 +24,32 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // CORS configuration
-app.use(cors({ 
-  origin: process.env.NODE_ENV === "production" 
-    ? [
-        "https://your-frontend-domain.vercel.app", // Replace with your actual frontend domain
-        "https://your-custom-domain.com"           // Replace with your custom domain if any
-      ]
-    : "http://localhost:5173",
-  credentials: true 
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
 
+      // ✅ Allow localhost (any port)
+      if (origin.startsWith("http://localhost")) {
+        return callback(null, true);
+      }
+
+      // ✅ Production allowed domains
+      const allowedOrigins = [
+        "https://mern-clothify-frontend.vercel.app",
+        "https://your-custom-domain.com",
+      ];
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // ❌ If not matched → block
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Clerk middleware setup - apply to all routes
