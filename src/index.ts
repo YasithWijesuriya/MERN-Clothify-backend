@@ -45,6 +45,7 @@ app.use(
     credentials: true,
   })
 );
+console.log("Origin:", origin, "Allowed:", FRONTEND_URL);
 app.use(express.json());
 
 // Clerk middleware setup - apply to all routes
