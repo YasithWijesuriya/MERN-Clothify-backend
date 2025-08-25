@@ -27,24 +27,14 @@ const PORT = process.env.PORT || 3000;
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-
-      // ✅ Allow localhost (any port)
-      if (origin.startsWith("http://localhost")) {
-        return callback(null, true);
-      }
-
-      // ✅ Production allowed domains
+      if (!origin) return callback(null, true); // Postman / server
+      // Localhost dev
+      if (origin.startsWith("http://localhost")) return callback(null, true);
+      // Production frontend
       const allowedOrigins = [
         "https://mern-clothify-frontend.vercel.app",
-        "https://your-custom-domain.com",
       ];
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      // ❌ If not matched → block
+      if (allowedOrigins.includes(origin)) return callback(null, true);
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
