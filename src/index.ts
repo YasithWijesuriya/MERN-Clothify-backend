@@ -26,10 +26,10 @@ const PORT = process.env.PORT || 3000;
 const FRONTEND_URL = process.env.FRONTEND_URL; // e.g., https://your-frontend.vercel.app
 const FRONTEND_URL_PREVIEW_PATTERN = /\.vercel\.app$/; // optional: allow Vercel previews
 
+console.log("Origin:", origin, "Allowed:", FRONTEND_URL);
 app.use(
   cors({
     origin: (origin, callback) => {
-      console.log("Origin:", origin, "Allowed:", FRONTEND_URL);
       if (!origin) return callback(null, true); // e.g., Postman, server-to-server
 
       if (origin.startsWith("http://localhost")) return callback(null, true);
