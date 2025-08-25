@@ -11,7 +11,6 @@ import globalErrorHandlingMiddleware from "./api/middleware/global-error-handlin
 import cors from 'cors';
 import { clerkMiddleware, createClerkClient } from '@clerk/express';
 
-// Extend Express Request interface to include auth
 declare global {
   namespace Express {
     interface Request {
@@ -30,33 +29,29 @@ const ALLOWED_ORIGINS = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // e.g. Postman, server-to-server
+      if (!origin) return callback(null, true);
 
-      // ✅ Allow localhost (dev)
+
       if (origin.startsWith("http://localhost")) {
         return callback(null, true);
       }
 
-      // ✅ Allow exact production domains
+    
       if (ALLOWED_ORIGINS.includes(origin)) {
         return callback(null, true);
       }
 
-      // ✅ Allow preview deployments (Cloudflare + Vercel)
       const hostname = new URL(origin).hostname;
       if (/\.(pages\.dev|vercel\.app)$/.test(hostname)) {
         return callback(null, true);
       }
 
-      // ❌ Not allowed
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   })
 );
 app.use(express.json());
-
-// Clerk middleware setup - apply to all routes
 app.use(clerkMiddleware());
 
 app.use("/api/products",productRouter);

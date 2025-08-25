@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-// Import all models to ensure they are registered
 import '../db/entities/Product';
 import '../db/entities/Categories';
 import '../db/entities/Review';
