@@ -17,15 +17,14 @@ const cors_1 = __importDefault(require("cors"));
 const express_2 = require("@clerk/express");
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
-app.use((0, cors_1.default)({ origin: "http://localhost:5173" }));
+// CORS configuration
+app.use((0, cors_1.default)({
+    origin: "http://localhost:5173",
+    credentials: true
+}));
 app.use(express_1.default.json());
-// Skip Clerk middleware for OPTIONS requests
-app.use((req, res, next) => {
-    if (req.method === "OPTIONS") {
-        return next();
-    }
-    return (0, express_2.clerkMiddleware)()(req, res, next);
-});
+// Clerk middleware setup - apply to all routes
+app.use((0, express_2.clerkMiddleware)());
 app.use("/api/products", product_1.default);
 app.use("/api/categories", categories_1.default);
 app.use("/api/reviews", review_1.default);

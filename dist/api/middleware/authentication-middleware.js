@@ -6,14 +6,20 @@ const isAuthenticated = (req, res, next) => {
     try {
         const auth = (0, express_1.getAuth)(req);
         if (!auth || !auth.userId) {
-            res.status(401).json({ status: "error", message: "Authentication required" });
-            return; // Stop execution
+            return res.status(401).json({
+                status: "error",
+                message: "Authentication required",
+            });
         }
-        req.auth = auth;
+        // Store auth data in res.locals instead of req.auth
+        res.locals.auth = auth;
         next();
     }
-    catch {
-        res.status(401).json({ status: "error", message: "Invalid authentication token" });
+    catch (error) {
+        return res.status(401).json({
+            status: "error",
+            message: "Invalid authentication token",
+        });
     }
 };
 exports.isAuthenticated = isAuthenticated;

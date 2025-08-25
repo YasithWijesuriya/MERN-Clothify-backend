@@ -1,18 +1,25 @@
 import { Request, Response, NextFunction } from "express";
-import { getAuth, AuthObject } from "@clerk/express";
+import { getAuth } from "@clerk/express";
 
-export const isAuthenticated = (req: Request, res: Response, next: NextFunction): void => {
+export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   try {
     const auth = getAuth(req);
 
     if (!auth || !auth.userId) {
-      res.status(401).json({ status: "error", message: "Authentication required" });
-      return; // Stop execution
+      return res.status(401).json({
+        status: "error",
+        message: "Authentication required",
+      });
     }
 
-    req.auth = auth;
+    // Store auth data in res.locals instead of req.auth
+    res.locals.auth = auth;
+
     next();
-  } catch {
-    res.status(401).json({ status: "error", message: "Invalid authentication token" });
+  } catch (error) {
+    return res.status(401).json({
+      status: "error",
+      message: "Invalid authentication token",
+    });
   }
 };

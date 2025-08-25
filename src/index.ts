@@ -9,25 +9,35 @@ import colorRouter from './api/color';
 import galleryRouter from "./api/gallery";
 import globalErrorHandlingMiddleware from "./api/middleware/global-error-handling-middleware";
 import cors from 'cors';
-import { clerkMiddleware } from '@clerk/express';
+import { clerkMiddleware, createClerkClient } from '@clerk/express';
 
-
-
+// Extend Express Request interface to include auth
+declare global {
+  namespace Express {
+    interface Request {
+      auth?: any;
+    }
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({ origin: "http://localhost:5173" }));
+// CORS configuration
+app.use(cors({ 
+  origin: process.env.NODE_ENV === "production" 
+    ? [
+        "https://your-frontend-domain.vercel.app", // Replace with your actual frontend domain
+        "https://your-custom-domain.com"           // Replace with your custom domain if any
+      ]
+    : "http://localhost:5173",
+  credentials: true 
+}));
+
 app.use(express.json());
 
-// Skip Clerk middleware for OPTIONS requests
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    return next();
-  }
-  return clerkMiddleware()(req, res, next);
-});
-
+// Clerk middleware setup - apply to all routes
+app.use(clerkMiddleware());
 
 app.use("/api/products",productRouter);
 app.use("/api/categories",categoryRouter);
@@ -39,7 +49,6 @@ app.use("/api/gallery", galleryRouter);
 app.use(globalErrorHandlingMiddleware);
 
 connectDB();
-
 
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`);

@@ -6,7 +6,7 @@ import NotFoundError from "../domain/errors/not-found-error";
 import ForbiddenError from "../domain/errors/forbidden-error";
 import { Request, Response, NextFunction } from "express";
 import { CreateReviewDTO } from "../domain/errors/DTO/review";
-import { getAuth, clerkClient } from "@clerk/express";
+import { clerkClient } from "@clerk/express";
 
 const getAllReviews = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -20,7 +20,8 @@ const getAllReviews = async (req: Request, res: Response, next: NextFunction) =>
 
 const createReview = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const auth = getAuth(req);
+    // Use auth data from res.locals instead of calling getAuth again
+    const auth = res.locals.auth;
     if (!auth?.userId) //!Clerk generate කරන unique ID
          throw new ForbiddenError("You do not have permission to create a review");
 
@@ -90,7 +91,8 @@ const getReview = async (req:Request , res:Response ,next:NextFunction)=>{
 
 const deleteReview = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const auth = getAuth(req);
+    // Use auth data from res.locals instead of calling getAuth again
+    const auth = res.locals.auth;
     if (!auth?.userId)
          throw new ForbiddenError("You do not have permission to delete a review");
 

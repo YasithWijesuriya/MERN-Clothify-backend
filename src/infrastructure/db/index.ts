@@ -8,7 +8,7 @@ import '../db/entities/Color';
 
 const connectDB = async () => {
     try{
-        const MONGODB_URL = process.env.MONGODB_URL;
+        const MONGODB_URL = process.env.MONGODB_URL || process.env.MONGODB_URI;
 
         if(!MONGODB_URL) {
             throw new Error("MongoDB URI is not defined");

@@ -30,7 +30,8 @@ const isAuthenticated = (req, res, next) => {
                 message: "Authentication required",
             });
         }
-        req.auth = auth;
+        // Store auth data in res.locals instead of req.auth
+        res.locals.auth = auth;
         next();
     }
     catch (error) {

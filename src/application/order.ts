@@ -1,11 +1,20 @@
 import { NextFunction, Request, Response } from "express";
 import Address from "../infrastructure/db/entities/Address";
 import Order from "../infrastructure/db/entities/Orders";
-import { getAuth } from "@clerk/express";
 
 const createOrder = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId, items, address, paymentMethod, paymentDetails, totalPrice } = req.body;
+    // Get userId from authenticated user instead of request body for security
+    const auth = res.locals.auth;
+    if (!auth?.userId) {
+      return res.status(401).json({
+        status: "error",
+        message: "Authentication required"
+      });
+    }
+
+    const { items, address, paymentMethod, paymentDetails, totalPrice } = req.body;
+    const userId = auth.userId;
 
     // create Address doc
     const addressDoc = await Address.create(address);
@@ -31,7 +40,8 @@ const createOrder = async (req: Request, res: Response, next: NextFunction) => {
 };
 const getMyOrders = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const auth = getAuth(req);
+    // Use auth data from res.locals instead of calling getAuth again
+    const auth = res.locals.auth;
     if (!auth || !auth.userId) {
       return res.status(401).json({ 
         status: 'error',

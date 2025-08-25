@@ -36,7 +36,9 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
       });
     }
 
-    req.auth = auth; 
+    // Store auth data in res.locals instead of req.auth
+    res.locals.auth = auth;
+    
     next();
   } catch (error) {
     return res.status(401).json({

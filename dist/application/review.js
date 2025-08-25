@@ -24,7 +24,8 @@ const getAllReviews = async (req, res, next) => {
 exports.getAllReviews = getAllReviews;
 const createReview = async (req, res, next) => {
     try {
-        const auth = (0, express_1.getAuth)(req);
+        // Use auth data from res.locals instead of calling getAuth again
+        const auth = res.locals.auth;
         if (!auth?.userId) //!Clerk generate කරන unique ID
             throw new forbidden_error_1.default("You do not have permission to create a review");
         const parsed = review_1.CreateReviewDTO.safeParse(req.body); //!createReviewDTO -> Zod schema එක (input validation)
@@ -85,7 +86,8 @@ const getReview = async (req, res, next) => {
 exports.getReview = getReview;
 const deleteReview = async (req, res, next) => {
     try {
-        const auth = (0, express_1.getAuth)(req);
+        // Use auth data from res.locals instead of calling getAuth again
+        const auth = res.locals.auth;
         if (!auth?.userId)
             throw new forbidden_error_1.default("You do not have permission to delete a review");
         const review = await Review_1.default.findById(req.params.id); //!url එකේ reviewID එක පාස් වෙනවා ඒක අරගෙන ඊට අදාල object එක review එකට assign කරගන්නවා.

@@ -6,10 +6,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDailySales = exports.getMyOrders = exports.getAllOrders = exports.createOrder = void 0;
 const Address_1 = __importDefault(require("../infrastructure/db/entities/Address"));
 const Orders_1 = __importDefault(require("../infrastructure/db/entities/Orders"));
-const express_1 = require("@clerk/express");
 const createOrder = async (req, res, next) => {
     try {
-        const { userId, items, address, paymentMethod, paymentDetails, totalPrice } = req.body;
+        // Get userId from authenticated user instead of request body for security
+        const auth = res.locals.auth;
+        if (!auth?.userId) {
+            return res.status(401).json({
+                status: "error",
+                message: "Authentication required"
+            });
+        }
+        const { items, address, paymentMethod, paymentDetails, totalPrice } = req.body;
+        const userId = auth.userId;
         // create Address doc
         const addressDoc = await Address_1.default.create(address);
         //addressDoc කියන්නේ DB එකෙන් return වෙන saved document (උදා: _id තියෙන object).
@@ -34,7 +42,8 @@ const createOrder = async (req, res, next) => {
 exports.createOrder = createOrder;
 const getMyOrders = async (req, res, next) => {
     try {
-        const auth = (0, express_1.getAuth)(req);
+        // Use auth data from res.locals instead of calling getAuth again
+        const auth = res.locals.auth;
         if (!auth || !auth.userId) {
             return res.status(401).json({
                 status: 'error',
