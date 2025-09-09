@@ -7,20 +7,19 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-06-20" as Stripe.LatestApiVersion,
 });
 
-// ✅ Create Payment Intent
 const createPayment = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { amount, orderData } = req.body;
 
-    // 1️⃣ Save address first
+    
     const addressDoc = await Address.create(orderData.address); // orderData.address must exist
     const savedOrder = await Order.create({
       ...orderData,
-      addressId: addressDoc._id, // assign the saved address _id
+      addressId: addressDoc._id, 
       paymentStatus: "PENDING",
     });
 
-    // 2️⃣ Create payment intent with metadata
+  
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "lkr",
@@ -39,7 +38,7 @@ const createPayment = async (req: Request, res: Response, next: NextFunction) =>
 };
 
 
-// ✅ Stripe Webhook
+// Stripe Webhook
 const stripeWebhook = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const sig = req.headers["stripe-signature"];
@@ -66,7 +65,7 @@ const stripeWebhook = async (req: Request, res: Response, next: NextFunction) =>
 
     res.status(200).json({ received: true });
   } catch (err) {
-    console.error("❌ Webhook error:", err);
+    console.error("Webhook error:", err);
     res.status(400).send(`Webhook Error: ${(err as any).message}`);
   }  next();
 };
