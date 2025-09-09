@@ -1,6 +1,5 @@
 import Stripe from "stripe";
 import Order from "../infrastructure/db/entities/Orders";
-import Address from "../infrastructure/db/entities/Address";
 import { Request, Response, NextFunction } from "express";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -11,39 +10,32 @@ const createPayment = async (req: Request, res: Response, next: NextFunction) =>
   try {
     const { amount, orderData } = req.body;
 
-    if (!orderData) {
-      return res.status(400).json({ message: "orderData is required" });
-    }
-
-    // 1️⃣ Save address first
-    const savedAddress = await Address.create(orderData.address);
-
-    // 2️⃣ Save order in DB with addressId
+    // 1️⃣ Save order in DB before payment
     const savedOrder = await Order.create({
       ...orderData,
-      addressId: savedAddress._id,
       paymentStatus: "PENDING",
     });
 
-    // 3️⃣ Create payment intent with metadata
+    // 2️⃣ Create payment intent with metadata
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
-      currency: "lkr", // make sure LKR is supported in Stripe dashboard
+      currency: "usd", // or "lkr" if you support LKR payments
       automatic_payment_methods: { enabled: true },
       metadata: {
-        orderId: savedOrder._id.toString(),
+        orderId: savedOrder._id.toString(), // attach orderId to payment
       },
     });
 
     res.json({
       clientSecret: paymentIntent.client_secret,
-      orderId: savedOrder._id,
+      orderId: savedOrder._id, // send to frontend if needed
     });
   } catch (error) {
     console.error("Stripe error:", error);
     next(error);
   }
-}; 
+};
+
 
 // Stripe Webhook
 const stripeWebhook = async (req: Request, res: Response, next: NextFunction) => {
