@@ -57,6 +57,7 @@ const productSchema = new mongoose_1.default.Schema({
         trim: true
     }
 });
+productSchema.index({ name: 'text', description: 'text' });
 const product = mongoose_1.default.model('Product', productSchema);
 exports.default = product;
 //# sourceMappingURL=Product.js.map

@@ -15,9 +15,8 @@ const colorSchema = new mongoose.Schema({
         required: true,
         unique: true,
     }
-}, {
-    timestamps: true
 });
+
 
 
 const color = mongoose.model('color', colorSchema);

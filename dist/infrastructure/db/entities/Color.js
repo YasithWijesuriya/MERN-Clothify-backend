@@ -19,8 +19,6 @@ const colorSchema = new mongoose_1.default.Schema({
         required: true,
         unique: true,
     }
-}, {
-    timestamps: true
 });
 const color = mongoose_1.default.model('color', colorSchema);
 exports.default = color;

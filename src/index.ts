@@ -7,6 +7,7 @@ import reviewRouter from './api/review';
 import orderRouter  from './api/order';
 import colorRouter from './api/color';
 import galleryRouter from "./api/gallery";
+import PaymentRouter from "./api/payment";
 import globalErrorHandlingMiddleware from "./api/middleware/global-error-handling-middleware";
 import cors from 'cors';
 import { clerkMiddleware, createClerkClient } from '@clerk/express';
@@ -60,6 +61,7 @@ app.use("/api/reviews",reviewRouter);
 app.use("/api/orders",orderRouter);
 app.use("/api/colors",colorRouter);
 app.use("/api/gallery", galleryRouter);
+app.use("/api/payments", PaymentRouter);
 
 app.use(globalErrorHandlingMiddleware);
 

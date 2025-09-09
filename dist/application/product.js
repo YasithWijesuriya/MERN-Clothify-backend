@@ -15,12 +15,19 @@ const Color_1 = __importDefault(require("../infrastructure/db/entities/Color"));
 const s3_1 = __importDefault(require("../infrastructure/s3"));
 const getAllProduct = async (req, res, next) => {
     try {
-        const { categorySlug, colorSlug, sortByPrice } = req.query;
-        let query = {};
-        if (typeof categorySlug === 'string')
+        const { categorySlug, colorSlug, sortByPrice, search } = req.query;
+        const query = {};
+        if (search && typeof search === 'string' && search.trim() !== '') {
+            const regex = new RegExp(search.trim(), 'i');
+            query.$or = [
+                { name: regex },
+                { description: regex },
+            ];
+        }
+        if (categorySlug)
             query.categorySlug = categorySlug.toLowerCase();
-        if (typeof colorSlug === 'string')
-            query.colorSlug = colorSlug.toLowerCase(); // match slug in DB
+        if (colorSlug)
+            query.colorSlug = colorSlug.toLowerCase();
         let sortOption = {};
         if (sortByPrice === 'asc')
             sortOption = { price: 1 };

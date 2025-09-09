@@ -10,6 +10,7 @@ productRouter
   .get(getAllProduct)
   .post(isAuthenticated, isAdmin, createProduct);
 
+
 productRouter
 .route('/:id')
 .get(getProductById)

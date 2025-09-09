@@ -10,30 +10,42 @@ import color from '../infrastructure/db/entities/Color';
 import S3 from '../infrastructure/s3';
 
 const getAllProduct = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { categorySlug, colorSlug, sortByPrice } = req.query;
-        let query: any = {};
+  try {
+    const { categorySlug, colorSlug, sortByPrice, search } = req.query as {
+      categorySlug?: string;
+      colorSlug?: string;
+      sortByPrice?: 'asc' | 'desc';
+      search?: string;
+    }; 
 
-                if (typeof categorySlug === 'string') query.categorySlug = categorySlug.toLowerCase();
-                if (typeof colorSlug === 'string') query.colorSlug = colorSlug.toLowerCase(); // match slug in DB
+    const query: Record<string, any> = {};
 
-                let sortOption :any ={};
-                if(sortByPrice === 'asc')sortOption = { price: 1 };
-                if(sortByPrice === 'desc')sortOption = { price: -1 };
-      
-
-                const products = await product.find(query)
-                .sort(sortOption)
-                .populate("reviews")
-                .populate("colorId")
-                .populate("categoryId");
-
-                res.status(200).json(products);
-    } catch (error) {
-        next(error);
+    if (search && typeof search === 'string' && search.trim() !== '') {
+      const regex = new RegExp(search.trim(), 'i');
+      query.$or = [
+        { name: regex },
+        { description: regex },
+      ];
     }
-};
 
+    if (categorySlug) query.categorySlug = categorySlug.toLowerCase();
+    if (colorSlug) query.colorSlug = colorSlug.toLowerCase();
+
+    let sortOption: Record<string, 1 | -1> = {};
+    if (sortByPrice === 'asc') sortOption = { price: 1 };
+    if (sortByPrice === 'desc') sortOption = { price: -1 };
+
+    const products = await product.find(query)
+      .sort(sortOption)
+      .populate("reviews")
+      .populate("colorId")
+      .populate("categoryId");
+
+    res.status(200).json(products);
+  } catch (error) {
+    next(error);
+  }
+};
 const createProduct = async (req: Request, res: Response, next: NextFunction) => {
      try {
     

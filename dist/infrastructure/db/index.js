@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.connectDB = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-// Import all models to ensure they are registered
 require("../db/entities/Product");
 require("../db/entities/Categories");
 require("../db/entities/Review");
@@ -13,7 +12,7 @@ require("../db/entities/Orders");
 require("../db/entities/Color");
 const connectDB = async () => {
     try {
-        const MONGODB_URL = process.env.MONGODB_URL;
+        const MONGODB_URL = process.env.MONGODB_URL || process.env.MONGODB_URI;
         if (!MONGODB_URL) {
             throw new Error("MongoDB URI is not defined");
         }
