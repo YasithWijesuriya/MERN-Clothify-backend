@@ -52,5 +52,6 @@ const OrderSchema = new mongoose_1.default.Schema({
     createdAt: { type: Date, default: Date.now },
     deliveryEta: { type: Date }, // delivery වලට + 48h
 });
-exports.default = mongoose_1.default.model("Order", OrderSchema);
+const Order = mongoose_1.default.model("Order", OrderSchema);
+exports.default = Order;
 //# sourceMappingURL=Orders.js.map
