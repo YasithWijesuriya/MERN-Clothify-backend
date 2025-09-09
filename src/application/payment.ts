@@ -11,20 +11,28 @@ const createPayment = async (req: Request, res: Response, next: NextFunction) =>
   try {
     const { amount, orderData } = req.body;
 
-    
-    const addressDoc = await Address.create(orderData.address); // orderData.address must exist
+    if (!orderData) {
+      return res.status(400).json({ message: "orderData is required" });
+    }
+
+    // 1️⃣ Save address first
+    const savedAddress = await Address.create(orderData.address);
+
+    // 2️⃣ Save order in DB with addressId
     const savedOrder = await Order.create({
       ...orderData,
-      addressId: addressDoc._id, 
+      addressId: savedAddress._id,
       paymentStatus: "PENDING",
     });
 
-  
+    // 3️⃣ Create payment intent with metadata
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
-      currency: "lkr",
+      currency: "lkr", // make sure LKR is supported in Stripe dashboard
       automatic_payment_methods: { enabled: true },
-      metadata: { orderId: savedOrder._id.toString() },
+      metadata: {
+        orderId: savedOrder._id.toString(),
+      },
     });
 
     res.json({
@@ -35,8 +43,7 @@ const createPayment = async (req: Request, res: Response, next: NextFunction) =>
     console.error("Stripe error:", error);
     next(error);
   }
-};
-
+}; 
 
 // Stripe Webhook
 const stripeWebhook = async (req: Request, res: Response, next: NextFunction) => {
