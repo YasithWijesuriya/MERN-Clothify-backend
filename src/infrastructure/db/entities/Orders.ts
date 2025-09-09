@@ -50,4 +50,6 @@ const OrderSchema = new mongoose.Schema({
   deliveryEta: { type: Date }, // delivery වලට + 48h
 });
 
-export default mongoose.model("Order", OrderSchema);
+
+const Order = mongoose.model("Order", OrderSchema);
+export default Order;
