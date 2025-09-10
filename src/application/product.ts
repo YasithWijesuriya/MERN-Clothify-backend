@@ -119,7 +119,6 @@ const deleteProduct = async (req: Request, res: Response, next: NextFunction) =>
     }
 };
 
-// Generate signed URL for upload
 const uploadProductImage = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { fileType } = req.body;

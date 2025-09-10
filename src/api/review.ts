@@ -14,6 +14,5 @@ reviewRouter.route('/:id')
   .get(getReview)
   .delete(isAuthenticated, deleteReview);
 
-// reviewRouter.route('/:id').get(getProductById).put(updateProduct).delete(deleteProduct);
 
 export default reviewRouter;

@@ -11,17 +11,14 @@ const createPayment = async (req: Request, res: Response, next: NextFunction) =>
   try {
     const { amount, orderData } = req.body;
 
-    // 1️⃣ Save address first
     const savedAddress = await Address.create(orderData.address);
 
-    // 2️⃣ Save order with addressId
     const savedOrder = await Order.create({
       ...orderData,
       addressId: savedAddress._id,
       paymentStatus: "PENDING",
     });
 
-    // 3️⃣ Create Stripe Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "lkr",
@@ -41,7 +38,6 @@ const createPayment = async (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-// Stripe Webhook
 const stripeWebhook = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const sig = req.headers["stripe-signature"];
@@ -61,8 +57,9 @@ const stripeWebhook = async (req: Request, res: Response, next: NextFunction) =>
         const order = await Order.findByIdAndUpdate(
           orderId,
           {paymentStatus: "PAID", paymentDetails: paymentIntent},
+          { new: true }
         );
-        console.log("✅ Updated Order:", order);
+        console.log("Updated Order:", order);
       } 
     }  
 
