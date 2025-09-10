@@ -43,15 +43,15 @@ const stripeWebhook = async (req: Request, res: Response, next: NextFunction) =>
     const sig = req.headers["stripe-signature"];
     const event = stripe.webhooks.constructEvent(req.body, sig!, process.env.STRIPE_WEBHOOK_SECRET!);
 
-    console.log("🔔 Stripe event received:", event.type);
-    console.log("📝 Event data:", event.data.object);
+    console.log("Stripe event received:", event.type);
+    console.log("Event data:", event.data.object);
 
     if (event.type === "payment_intent.succeeded") {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      console.log("💰 PaymentIntent metadata:", paymentIntent.metadata);
+      console.log("PaymentIntent metadata:", paymentIntent.metadata);
 
       const orderId = paymentIntent.metadata.orderId;
-      console.log("📦 Order ID from metadata:", orderId);
+      console.log("Order ID from metadata:", orderId);
 
       if (orderId) {
         const order = await Order.findByIdAndUpdate(
