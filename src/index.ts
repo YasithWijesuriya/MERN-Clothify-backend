@@ -26,6 +26,8 @@ const PORT = process.env.PORT || 3000;
 const ALLOWED_ORIGINS = [
   "https://mern-clothify.pages.dev", 
 ];
+app.use(express.json());
+app.use(clerkMiddleware());
 
 app.use(
   cors({
@@ -53,8 +55,6 @@ app.use(
   })
 );
 app.use("/api/payments", PaymentRouter);
-app.use(express.json());
-app.use(clerkMiddleware());
 
 app.use("/api/products",productRouter);
 app.use("/api/categories",categoryRouter);
