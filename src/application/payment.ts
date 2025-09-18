@@ -34,9 +34,12 @@ const createPayment = async (req: Request, res: Response, next: NextFunction) =>
       clientSecret: paymentIntent.client_secret,
       orderId: savedOrder._id,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Stripe error:", error);
-    next(error);
+    return res.status(500).json({
+      message: error?.message || "Internal Server Error",
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
   }
 };
 
