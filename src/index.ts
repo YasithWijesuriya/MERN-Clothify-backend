@@ -52,6 +52,7 @@ app.use(
     credentials: true,
   })
 );
+app.use("/api/payments", PaymentRouter);
 app.use(express.json());
 app.use(clerkMiddleware());
 
@@ -61,7 +62,6 @@ app.use("/api/reviews",reviewRouter);
 app.use("/api/orders",orderRouter);
 app.use("/api/colors",colorRouter);
 app.use("/api/gallery", galleryRouter);
-app.use("/api/payments", PaymentRouter);
 
 app.use(globalErrorHandlingMiddleware);
 
