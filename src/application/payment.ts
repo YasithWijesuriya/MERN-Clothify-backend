@@ -8,6 +8,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 const createPayment = async (req: Request, res: Response, next: NextFunction) => {
+  console.log("Request body:", req.body);
+
   try {
     const { amount, orderData } = req.body;
 
@@ -21,7 +23,7 @@ const createPayment = async (req: Request, res: Response, next: NextFunction) =>
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
-      currency: "lkr",
+      currency: "usd",
       automatic_payment_methods: { enabled: true },
       metadata: {
         orderId: savedOrder._id.toString(),
